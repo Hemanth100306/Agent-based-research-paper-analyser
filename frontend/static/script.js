@@ -9,10 +9,12 @@ function search() {
     .then(res => res.json())
     .then(data => {
         const div = document.getElementById("results");
+        div.innerHTML = "";
 
-        div.innerHTML = `
+        div.innerHTML += `
             <h2>Answer</h2>
             <p>${data.answer}</p>
+            <hr/>
             <h2>Relevant Papers</h2>
         `;
 
@@ -21,7 +23,7 @@ function search() {
                 <div class="card">
                     <h3>${paper.title}</h3>
                     <p>${paper.abstract}</p>
-                    <p><b>Relevance Score:</b> ${paper.relevance}</p>
+                    <p><b>Relevance:</b> ${paper.relevance}</p>
                     <p><b>Source:</b> ${paper.source}</p>
                     <a href="/view-pdf?url=${encodeURIComponent(paper.pdf_url)}" target="_blank">
                         View / Download PDF
@@ -29,8 +31,5 @@ function search() {
                 </div>
             `;
         });
-    })
-    .catch(err => {
-        console.error("Search error:", err);
     });
 }
