@@ -1,36 +1,54 @@
-from sentence_transformers import SentenceTransformer
-import faiss
-import numpy as np
-from metadata_fetcher import fetch_papers
-from query_expander import expand_query
+function search() {
+    const queryInput = document.getElementById("query");
+    const resultsDiv = document.getElementById("results");
 
-model = SentenceTransformer("all-MiniLM-L6-v2")
+    if (!queryInput || !resultsDiv) {
+        console.error("Required DOM elements not found");
+        return;
+    }
 
-def search_papers(query, top_k=3):
-    expanded_queries = expand_query(query)
-    all_papers = []
+    const query = queryInput.value.trim();
+    if (!query) {
+        resultsDiv.innerHTML = "<p>Please enter a search query.</p>";
+        return;
+    }
 
-    for q in expanded_queries:
-        papers = fetch_papers(q, max_results=5)
-        all_papers.extend(papers)
+    fetch("/search", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ query: query })
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        return response.json();
+    })
+    .then(data => {
+        resultsDiv.innerHTML = "";
 
-    abstracts = [p["abstract"] for p in all_papers]
-    embeddings = model.encode(abstracts)
+        if (!Array.isArray(data) || data.length === 0) {
+            resultsDiv.innerHTML = "<p>No results found.</p>";
+            return;
+        }
 
-    dimension = embeddings.shape[1]
-    index = faiss.IndexFlatL2(dimension)
-    index.add(np.array(embeddings))
-
-    query_embedding = model.encode([query])
-    distances, indices = index.search(np.array(query_embedding), top_k)
-
-    results = []
-    for idx in indices[0]:
-        paper = all_papers[idx]
-        results.append({
-            "title": paper["title"],
-            "abstract": paper["abstract"],
-            "pdf_url": paper["pdf_url"]
-        })
-
-    return results
+        data.forEach(paper => {
+            resultsDiv.innerHTML += `
+                <div class="card">
+                    <h3>${paper.title ?? "No title available"}</h3>
+                    <p>${paper.abstract ?? "No abstract available"}</p>
+                    <p><b>Relevance Score:</b> ${paper.relevance ?? "N/A"}</p>
+                    <a href="/view-pdf?url=${encodeURIComponent(paper.pdf_url)}" target="_blank">
+                        View / Download PDF
+                    </a>
+                </div>
+            `;
+        });
+    })
+    .catch(error => {
+        console.error("Search error:", error);
+        resultsDiv.innerHTML = "<p>Something went wrong. Please try again.</p>";
+    });
+}
