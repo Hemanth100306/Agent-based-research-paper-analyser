@@ -15,5 +15,7 @@ def expand_query(query):
     )
 
     expanded = response.choices[0].message.content
+    if expanded is None:
+        return []
     terms = [t.strip() for t in expanded.split(",")]
     return terms
