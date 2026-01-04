@@ -11,8 +11,7 @@ def search_papers(query, top_k=3):
     all_papers = []
 
     for q in expanded_queries:
-        papers = fetch_papers(q, max_results=5)
-        all_papers.extend(papers)
+        all_papers.extend(fetch_papers(q, max_results=5))
 
     abstracts = [p["abstract"] for p in all_papers]
     embeddings = model.encode(abstracts)
@@ -25,12 +24,17 @@ def search_papers(query, top_k=3):
     distances, indices = index.search(np.array(query_embedding), top_k)
 
     results = []
-    for idx in indices[0]:
+    for rank, idx in enumerate(indices[0]):
+        distance = distances[0][rank]
+
+        relevance_score = round(100 / (1 + distance), 2)
+
         paper = all_papers[idx]
         results.append({
             "title": paper["title"],
             "abstract": paper["abstract"],
-            "pdf_url": paper["pdf_url"]
+            "pdf_url": paper["pdf_url"],
+            "relevance": relevance_score
         })
 
     return results
