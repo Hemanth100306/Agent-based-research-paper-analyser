@@ -2,13 +2,19 @@ from sentence_transformers import SentenceTransformer
 import faiss
 import numpy as np
 from metadata_fetcher import fetch_papers
+from query_expander import expand_query
 
 model = SentenceTransformer("all-MiniLM-L6-v2")
 
 def search_papers(query, top_k=3):
-    papers = fetch_papers(query, max_results=10)
+    expanded_queries = expand_query(query)
+    all_papers = []
 
-    abstracts = [p["abstract"] for p in papers]
+    for q in expanded_queries:
+        papers = fetch_papers(q, max_results=5)
+        all_papers.extend(papers)
+
+    abstracts = [p["abstract"] for p in all_papers]
     embeddings = model.encode(abstracts)
 
     dimension = embeddings.shape[1]
@@ -20,10 +26,11 @@ def search_papers(query, top_k=3):
 
     results = []
     for idx in indices[0]:
+        paper = all_papers[idx]
         results.append({
-            "title": papers[idx]["title"],
-            "abstract": papers[idx]["abstract"],
-            "pdf_url": papers[idx]["pdf_url"]
+            "title": paper["title"],
+            "abstract": paper["abstract"],
+            "pdf_url": paper["pdf_url"]
         })
 
     return results
