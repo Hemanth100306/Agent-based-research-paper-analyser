@@ -1,64 +1,21 @@
-function search() {
-    const queryInput = document.getElementById("query");
-    const resultsDiv = document.getElementById("results");
+from sentence_transformers import SentenceTransformer
+import faiss
+import numpy as np
+from metadata_fetcher import fetch_papers
+from query_expander import expand_query
 
-    if (!queryInput || !resultsDiv) {
-        console.error("Required DOM elements not found");
-        return;
-    }
+model = SentenceTransformer("all-MiniLM-L6-v2")
 
-    const query = queryInput.value.trim();
-    if (!query) {
-        resultsDiv.innerHTML = "<p>Please enter a search query.</p>";
-        return;
-    }
+def search_papers(query, top_k=3):
+    expanded_queries = expand_query(query)
+    all_papers = []
 
-<<<<<<< HEAD
-    fetch("/search", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ query: query })
-    })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error(`HTTP error! Status: ${response.status}`);
-        }
-        return response.json();
-    })
-    .then(data => {
-        resultsDiv.innerHTML = "";
-=======
     for q in expanded_queries:
         all_papers.extend(fetch_papers(q, max_results=5))
->>>>>>> 24e416453fb12faf0a23cdf6024d70de65531d52
 
-        if (!Array.isArray(data) || data.length === 0) {
-            resultsDiv.innerHTML = "<p>No results found.</p>";
-            return;
-        }
+    abstracts = [p["abstract"] for p in all_papers]
+    embeddings = model.encode(abstracts)
 
-<<<<<<< HEAD
-        data.forEach(paper => {
-            resultsDiv.innerHTML += `
-                <div class="card">
-                    <h3>${paper.title ?? "No title available"}</h3>
-                    <p>${paper.abstract ?? "No abstract available"}</p>
-                    <p><b>Relevance Score:</b> ${paper.relevance ?? "N/A"}</p>
-                    <a href="/view-pdf?url=${encodeURIComponent(paper.pdf_url)}" target="_blank">
-                        View / Download PDF
-                    </a>
-                </div>
-            `;
-        });
-    })
-    .catch(error => {
-        console.error("Search error:", error);
-        resultsDiv.innerHTML = "<p>Something went wrong. Please try again.</p>";
-    });
-}
-=======
     dimension = embeddings.shape[1]
     index = faiss.IndexFlatL2(dimension)
     index.add(np.array(embeddings))
@@ -81,4 +38,3 @@ function search() {
         })
 
     return results
->>>>>>> 24e416453fb12faf0a23cdf6024d70de65531d52
