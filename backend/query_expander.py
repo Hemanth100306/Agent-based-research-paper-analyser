@@ -1,21 +1,26 @@
-from openai import OpenAI
+from groq import Groq
+import os
+from dotenv import load_dotenv
 
-client = OpenAI(api_key="YOUR_API_KEY")
+load_dotenv()
+
+client = Groq(api_key=os.getenv("GROQ_API_KEY"))
 
 def expand_query(query):
     prompt = f"""
-    Expand the following research topic into 4 related academic search terms:
+    Expand the following research topic into 4 related academic search terms.
+    Return only comma-separated terms.
+
     Topic: {query}
     """
 
     response = client.chat.completions.create(
-        model="gpt-3.5-turbo",
-        messages=[{"role": "user", "content": prompt}],
+        model="llama-3.1-8b-instant",
+        messages=[
+            {"role": "user", "content": prompt}
+        ],
         temperature=0.3
     )
 
-    expanded = response.choices[0].message.content
-    if expanded is None:
-        return []
-    terms = [t.strip() for t in expanded.split(",")]
-    return terms
+    text = response.choices[0].message.content.strip()
+    return [t.strip() for t in text.split(",")]
