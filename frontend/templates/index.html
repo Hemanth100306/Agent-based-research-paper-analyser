@@ -1,16 +1,76 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Hybrid RAG Paper Search</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Research Paper Analyzer</title>
     <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
-    <h1>Research Paper Search</h1>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="navbar-brand">
+                <h1>📚 Research Paper Analyzer</h1>
+                <p class="subtitle">AI-powered search & analysis</p>
+            </div>
+        </div>
+    </nav>
 
-    <input id="query" placeholder="Enter topic..." />
-    <button onclick="search()">Search</button>
+    <!-- Main Container -->
+    <div class="container">
+        <!-- Search Section -->
+        <section class="search-section">
+            <div class="search-box">
+                <input 
+                    id="query" 
+                    type="text" 
+                    placeholder="Search for research topics, keywords, or questions..."
+                    class="search-input"
+                    onkeypress="if(event.key === 'Enter') search()"
+                />
+                <button class="search-btn" onclick="search()">
+                    <span>🔍 Search</span>
+                </button>
+            </div>
+            <div id="loading" class="loading hidden">
+                <div class="spinner"></div>
+                <p>Analyzing papers...</p>
+            </div>
+        </section>
 
-    <div id="results"></div>
+        <!-- Results Section -->
+        <section id="results-section" class="results-section hidden">
+            
+            <!-- AI Answer Section -->
+            <div id="answer-section" class="answer-section">
+                <div class="answer-header">
+                    <h2>💡 AI Summary</h2>
+                </div>
+                <div id="answer-content" class="answer-content"></div>
+            </div>
+
+            <!-- Papers Section -->
+            <div id="papers-section" class="papers-section">
+                <h2>📄 Related Papers</h2>
+                <div id="papers-container" class="papers-grid"></div>
+            </div>
+        </section>
+
+        <!-- Empty State -->
+        <section id="empty-state" class="empty-state">
+            <div class="empty-content">
+                <p class="empty-icon">🔎</p>
+                <h2>Start Your Research</h2>
+                <p>Enter a topic or question above to discover relevant research papers and AI-generated insights.</p>
+            </div>
+        </section>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <p>&copy; 2026 Research Paper Analyzer | Powered by AI & RAG</p>
+    </footer>
 
     <script src="/static/script.js"></script>
 </body>
